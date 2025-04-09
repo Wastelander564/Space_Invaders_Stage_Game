@@ -1,0 +1,499 @@
+import 'package:flame/components.dart';
+import 'package:flame/game.dart';
+import 'package:flame/input.dart';
+import 'package:flame/particles.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:math';
+import 'package:flame_audio/flame_audio.dart';
+import 'package:flame/effects.dart';
+
+
+void main() {
+  runApp(GameWidget(game: SpaceInvadersGame()));
+}
+
+class SpaceInvadersGame extends FlameGame with KeyboardEvents {
+  late Player player;
+  late EnemyGrid enemyGrid;
+  late Ground ground;
+  late LivesDisplay livesDisplay;
+
+  List<Projectile> projectiles = [];
+  List<EnemyProjectile> enemyProjectiles = [];
+
+  bool musicStarted = false;
+
+  @override
+  Future<void> onLoad() async {
+    FlameAudio.bgm.initialize(); // Prepare music but don't play yet
+
+    final double screenWidth = size.x;
+    final double screenHeight = size.y;
+
+    ground = Ground(screenWidth, screenHeight);
+    add(ground);
+
+    livesDisplay = LivesDisplay(screenWidth);
+    add(livesDisplay);
+
+    player = Player(screenWidth, screenHeight, this);
+    add(player);
+
+    enemyGrid = EnemyGrid(screenWidth, this);
+    add(enemyGrid);
+  }
+
+  @override
+  void onDetach() {
+    FlameAudio.bgm.dispose();
+    super.onDetach();
+  }
+
+  @override
+  KeyEventResult onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
+    if (event is KeyDownEvent) {
+      if (!musicStarted) {
+        FlameAudio.bgm.play('space-invaders-classic-arcade-game-116826.mp3');
+        musicStarted = true;
+      }
+
+      if (keysPressed.contains(LogicalKeyboardKey.arrowLeft)) {
+        player.moveLeft();
+      } else if (keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
+        player.moveRight();
+      } else if (keysPressed.contains(LogicalKeyboardKey.space)) {
+        player.shoot();
+      }
+    } else if (event is KeyUpEvent) {
+      if (!keysPressed.contains(LogicalKeyboardKey.arrowLeft) &&
+          !keysPressed.contains(LogicalKeyboardKey.arrowRight)) {
+        player.stopMoving();
+      }
+    }
+
+    return KeyEventResult.handled;
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+
+    for (var projectile in projectiles) {
+      projectile.update(dt);
+    }
+
+    for (var enemyProjectile in enemyProjectiles) {
+      enemyProjectile.update(dt);
+      if (enemyProjectile.collisionBox.overlaps(player.collisionBox)) {
+        enemyProjectile.removeFromParent();
+        enemyProjectiles.remove(enemyProjectile);
+        livesDisplay.loseLife();
+
+        if (livesDisplay.lives <= 0) {
+          player.removeFromParent();
+          resetGame(); // Reset game on lose
+        }
+        break;
+      }
+    }
+
+    enemyGrid.checkCollisions(projectiles);
+    enemyGrid.enemyShoot();
+
+    // Check win condition: if all enemies are defeated
+    if (enemyGrid.enemies.isEmpty) {
+      resetGame(); // Reset game on win
+    }
+  }
+
+  void resetGame() {
+    // Destroy all current game objects
+    clearGameObjects();
+
+    // Re-instantiate the game objects
+    final double screenWidth = size.x;
+    final double screenHeight = size.y;
+
+    ground = Ground(screenWidth, screenHeight);
+    add(ground);
+
+    livesDisplay = LivesDisplay(screenWidth);
+    add(livesDisplay);
+
+    player = Player(screenWidth, screenHeight, this);
+    add(player);
+
+    enemyGrid = EnemyGrid(screenWidth, this);
+    add(enemyGrid);
+
+    // Optionally reset the background music or sounds if needed
+    if (musicStarted) {
+      FlameAudio.bgm.play('space-invaders-classic-arcade-game-116826.mp3');
+    }
+  }
+
+  void clearGameObjects() {
+    // Remove all projectiles, enemies, and other components from the game
+    projectiles.clear();
+    enemyProjectiles.clear();
+
+    // Remove all game components (use a regular for loop instead of forEach)
+    for (var child in children) {
+      remove(child); // This will remove all components added to the game
+    }
+  }
+
+}
+
+class Player extends SpriteAnimationComponent with HasGameRef<SpaceInvadersGame> {
+  static const double speed = 200;
+  double velocity = 0;
+
+  Player(double screenWidth, double screenHeight, SpaceInvadersGame game) {
+    size = Vector2(48, 16); // 3 frames * 16px
+    position = Vector2(screenWidth / 2 - size.x / 2, screenHeight - 100);
+  }
+
+  @override
+  Future<void> onLoad() async {
+    animation = await game.loadSpriteAnimation(
+      'DGS-Tank.png',
+      SpriteAnimationData.sequenced(
+        amount: 3,
+        stepTime: 0.2,
+        textureSize: Vector2(16, 16),
+      ),
+    );
+  }
+
+  void moveLeft() => velocity = -speed;
+  void moveRight() => velocity = speed;
+  void stopMoving() => velocity = 0;
+
+  void shoot() {
+    final projectile = Projectile(position.x + size.x / 2, position.y - 10);
+    gameRef.projectiles.add(projectile);
+    parent?.add(projectile);
+    
+    // Apply scaling effect when the player shoots
+    _applyScaleEffect();
+  }
+
+  void _applyScaleEffect() {
+  add(ScaleEffect.to(
+    Vector2(1.5, 1.5), // Scale up by 1.5 times in both X and Y axis
+    EffectController(duration: 0.2), // Duration of the scale-up effect
+    onComplete: () {
+      // Scale back to original size after a short delay
+      add(ScaleEffect.to(
+        Vector2(1.0, 1.0), // Back to original size
+        EffectController(duration: 0.2),
+      ));
+    },
+  ));
+}
+
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position.x += velocity * dt;
+    position.x = position.x.clamp(0, gameRef.size.x - size.x);
+  }
+
+  Rect get collisionBox =>
+      Rect.fromLTWH(position.x, position.y, size.x, size.y);
+}
+
+
+
+class Ground extends PositionComponent {
+  Ground(double screenWidth, double screenHeight) {
+    size = Vector2(screenWidth, 15);
+    position = Vector2(0, screenHeight - size.y);
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final paint = Paint()..color = Colors.white;
+    canvas.drawRect(size.toRect(), paint);
+  }
+}
+
+class Enemy extends SpriteAnimationComponent with HasGameRef<SpaceInvadersGame> {
+  static const double speed = 50;
+  final Vector2 startPos;
+
+  Enemy(this.startPos) {
+    size = Vector2(32, 16); // 2 frames * 16px
+    position = startPos.clone();
+  }
+
+  @override
+  Future<void> onLoad() async {
+    animation = await gameRef.loadSpriteAnimation(
+      'SpaceInvaderCrab.png',
+      SpriteAnimationData.sequenced(
+        amount: 2,
+        stepTime: 0.5,
+        textureSize: Vector2(16, 16),
+      ),
+    );
+  }
+
+  // Method to move the enemy down
+  void moveDown(double distance) {
+    position.y += distance;
+  }
+
+  // Method to get the collision box for the enemy
+  Rect get collisionBox =>
+      Rect.fromLTWH(position.x, position.y, size.x, size.y);
+}
+
+
+
+class EnemyGrid extends PositionComponent {
+  late List<Enemy> enemies;
+  final int rows = 5;
+  final int cols = 11;
+  final double spacing = 15.0;
+  final double enemyWidth = 50.0;
+  final double enemyHeight = 30.0;
+  double direction = 1;
+  double speed = 30;
+  double moveDownDistance = 40;
+  double time = 0;
+
+  final double screenWidth;
+  final SpaceInvadersGame game;
+  final Random random = Random();
+
+  EnemyGrid(this.screenWidth, this.game);
+
+  @override
+  Future<void> onLoad() async {
+    double totalWidth = cols * (enemyWidth + spacing) - spacing;
+    double startX = (screenWidth - totalWidth) / 2;
+
+    enemies = [];
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < cols; col++) {
+        final double x = startX + col * (enemyWidth + spacing);
+        final double y = 50 + row * (enemyHeight + spacing);
+        final enemy = Enemy(Vector2(x, y));
+        enemies.add(enemy);
+        add(enemy);
+      }
+    }
+  }
+
+  @override
+  void update(double dt) {
+    time += dt;
+    if (time >= 1) {
+      time = 0;
+      moveEnemies();
+    }
+  }
+
+  void moveEnemies() {
+    bool atEdge = false;
+
+    for (var enemy in enemies) {
+      enemy.position.x += direction * speed;
+    }
+
+    for (var enemy in enemies) {
+      if (enemy.position.x + enemyWidth >= screenWidth || enemy.position.x <= 0) {
+        atEdge = true;
+        break;
+      }
+    }
+
+    if (atEdge) {
+      for (var enemy in enemies) {
+        enemy.moveDown(moveDownDistance);
+      }
+      direction *= -1;
+    }
+  }
+
+  void checkCollisions(List<Projectile> projectiles) {
+    List<Enemy> enemiesToRemove = [];
+    List<Projectile> projectilesToRemove = [];
+
+    for (var projectile in projectiles) {
+      for (var enemy in enemies) {
+        if (projectile.collisionBox.overlaps(enemy.collisionBox)) {
+          enemiesToRemove.add(enemy);
+          projectilesToRemove.add(projectile);
+          break;
+        }
+      }
+    }
+
+    for (var enemy in enemiesToRemove) {
+      enemy.removeFromParent();
+      enemies.remove(enemy);
+    }
+
+    for (var projectile in projectilesToRemove) {
+      projectile.removeFromParent();
+    }
+
+    projectiles.removeWhere((p) => projectilesToRemove.contains(p));
+  }
+
+  void enemyShoot() {
+    if (enemies.isNotEmpty && random.nextDouble() < 0.01) {
+      final shooter = enemies[random.nextInt(enemies.length)];
+      final bullet = EnemyProjectile(
+        shooter.position.x + shooter.size.x / 2,
+        shooter.position.y + shooter.size.y,
+      );
+      game.enemyProjectiles.add(bullet);
+      parent?.add(bullet);
+    }
+  }
+}
+
+class Projectile extends SpriteComponent with HasGameRef<SpaceInvadersGame> {
+  static const double speed = 300;
+  final double startX;
+  final double startY;
+
+  Projectile(this.startX, this.startY) {
+    size = Vector2(10, 20); // This can be updated based on the actual image size
+    position = Vector2(startX - size.x / 2, startY - size.y);
+  }
+
+  @override
+  Future<void> onLoad() async {
+    sprite = await gameRef.loadSprite('DGS-BulletPlayer.png');
+    FlameAudio.play('8-bit-laser-151672.mp3', volume: 0.20);
+    _addTrailEffect();
+    effectProjectile(); // Apply the color effect when the projectile is created
+  }
+
+  void _addTrailEffect() {
+    // Create a trail particle effect using an AcceleratedParticle
+    gameRef.add(
+      ParticleSystemComponent(
+        particle: AcceleratedParticle(
+          position: position, // Start at the projectile's position
+          speed: Vector2(0, -speed), // Direction and speed of the trail
+          acceleration: Vector2.zero(), // No additional acceleration
+          child: CircleParticle(
+            radius: 7.0, // Size of the trail
+            paint: Paint()..color = const Color.fromARGB(255, 73, 1, 255), // Trail color
+          ),
+        ),
+      ),
+    );
+  }
+
+  void effectProjectile() {
+    // Apply the color effect (fade in and out with a greenish color)
+    add(
+      ColorEffect(
+        const Color.fromARGB(255, 30, 255, 0), // Green color
+        EffectController(duration: 1.5), // Duration of the effect
+        opacityFrom: 0.2, // Initial opacity (faint)
+        opacityTo: 0.8, // Final opacity (brighter)
+      ),
+    );
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position.y -= speed * dt;
+    if (position.y < 0) {
+      removeFromParent();
+    }
+  }
+
+  Rect get collisionBox =>
+      Rect.fromLTWH(position.x, position.y, size.x, size.y);
+}
+
+
+class EnemyProjectile extends SpriteComponent with HasGameRef<SpaceInvadersGame> {
+  static const double speed = 150;
+  final double startX;
+  final double startY;
+
+  EnemyProjectile(this.startX, this.startY) {
+    size = Vector2(10, 20); // Match your PNG size
+    position = Vector2(startX - size.x / 2, startY);
+  }
+
+  @override
+  Future<void> onLoad() async {
+    sprite = await gameRef.loadSprite('DGS-EnemyBullet.png');
+    FlameAudio.play('8-bit-laser-151672.mp3', volume: 0.20);
+  }
+
+  @override
+  void update(double dt) {
+    super.update(dt);
+    position.y += speed * dt;
+    if (position.y > gameRef.size.y) {
+      removeFromParent();
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    super.render(canvas);
+    // Create a paint object with a color filter for the tint effect
+    final Paint paintWithTint = Paint()
+      ..colorFilter = ColorFilter.mode(
+        const Color.fromARGB(170, 255, 162, 0), // Amber color with some transparency
+        BlendMode.srcATop, // Blend mode to apply the tint on top
+      );
+    
+    // Draw the sprite with the applied tint
+    canvas.drawImage(sprite!.image, position.toOffset(), paintWithTint);
+  }
+
+  Rect get collisionBox =>
+      Rect.fromLTWH(position.x, position.y, size.x, size.y);
+}
+
+
+class LivesDisplay extends PositionComponent with HasGameRef<SpaceInvadersGame> {
+  int lives = 3;
+  final double screenWidth;
+  final List<SpriteComponent> lifeIcons = [];
+
+  LivesDisplay(this.screenWidth);
+
+  @override
+  Future<void> onLoad() async {
+    final sprite = await gameRef.loadSprite('heart-DGS.png');
+    const double iconSize = 24;
+    final double spacing = 8;
+    final double startX = screenWidth - (iconSize + spacing) * lives;
+
+    for (int i = 0; i < lives; i++) {
+      final icon = SpriteComponent(
+        sprite: sprite,
+        size: Vector2(iconSize, iconSize),
+        position: Vector2(startX + i * (iconSize + spacing), 10),
+      );
+      lifeIcons.add(icon);
+      add(icon);
+    }
+  }
+
+  void loseLife() {
+    if (lives > 0) {
+      lives--;
+      final iconToRemove = lifeIcons.removeLast();
+      iconToRemove.removeFromParent();
+    }
+  }
+}

@@ -1,0 +1,27 @@
+name: my_game
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flame: ^1.8.1
+  logging: ^1.0.2
+  flutter_bloc: ^8.0.1
+  flame_audio: ^2.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/space-invaders-classic-arcade-game-116826.mp3
+    - assets/audio/8-bit-laser-151672.mp3
+    - assets/images/
