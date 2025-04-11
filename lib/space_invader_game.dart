@@ -8,8 +8,8 @@ import 'player.dart';
 import 'projectile.dart';
 import 'enemy_grid.dart';
 import 'ground.dart';
-import 'enemyProjectile.dart';
-import 'LivesDisplay.dart';
+import 'enemy_projectile.dart';
+import 'lives_display.dart';
 import 'ProjectilePool.dart';
 
 import 'game_bloc.dart';

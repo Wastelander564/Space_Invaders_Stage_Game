@@ -1,5 +1,5 @@
 import 'enemy_projectile_strategy.dart';
-import 'enemyProjectile.dart';
+import 'enemy_projectile.dart';
 import 'dart:math';
 
 class ZigZagStrategy extends ProjectileStrategy {

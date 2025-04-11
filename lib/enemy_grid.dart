@@ -4,7 +4,7 @@ import 'package:my_game/projectile.dart';
 import 'object_pool.dart';
 import 'enemy.dart';
 import 'space_invader_game.dart';
-import 'enemyProjectile.dart';
+import 'enemy_projectile.dart';
 import 'enemy_projectile_strategy.dart';
 import 'zig_zag_strategy.dart';
 import 'straight_down_strategy.dart';
