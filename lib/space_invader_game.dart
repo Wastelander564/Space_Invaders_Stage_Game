@@ -4,17 +4,17 @@ import 'package:flame_audio/flame_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'player.dart';
-import 'projectile.dart';
-import 'enemy_grid.dart';
-import 'ground.dart';
-import 'enemy_projectile.dart';
-import 'lives_display.dart';
-import 'ProjectilePool.dart';
+import 'components/player/player.dart';
+import 'components/player/projectile.dart';
+import 'components/enemy/enemy_grid.dart';
+import 'components/ground.dart';
+import 'components/enemy/enemy_projectile.dart';
+import 'components/lives_display.dart';
+import 'logic/projectile_pool.dart';
 
-import 'game_bloc.dart';
-import 'game_event.dart';
-import 'game_state.dart';
+import 'logic/game_bloc.dart';
+import 'logic/game_event.dart';
+import 'logic/game_state.dart';
 
 class SpaceInvadersGame extends FlameGame with KeyboardEvents {
   late Player player;

@@ -1,10 +1,12 @@
 import 'package:flame/components.dart';
-import 'space_invader_game.dart';
+import 'package:flutter/material.dart';
+import 'package:my_game/space_invader_game.dart';
+import 'package:my_game/decorator/tint_decorator.dart';
 
 class LivesDisplay extends PositionComponent with HasGameRef<SpaceInvadersGame> {
   int lives = 3;
   final double screenWidth;
-  final List<SpriteComponent> lifeIcons = [];
+  final List<Component> lifeIcons = [];
 
   LivesDisplay(this.screenWidth);
 
@@ -19,10 +21,18 @@ class LivesDisplay extends PositionComponent with HasGameRef<SpaceInvadersGame> 
       final icon = SpriteComponent(
         sprite: sprite,
         size: Vector2(iconSize, iconSize),
-        position: Vector2(startX + i * (iconSize + spacing), 10),
+        position: Vector2.zero(), // Will be offset via the decorator
       );
-      lifeIcons.add(icon);
-      add(icon);
+
+      final decoratedIcon = TintDecoratorComponent(
+        child: icon,
+        tintColor: const Color.fromARGB(170, 0, 132, 255), // orange-ish tint
+      )
+        ..position = Vector2(startX + i * (iconSize + spacing), 10)
+        ..size = Vector2(iconSize, iconSize);
+
+      lifeIcons.add(decoratedIcon);
+      add(decoratedIcon);
     }
   }
 

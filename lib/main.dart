@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'space_invader_game.dart';
-import 'game_bloc.dart';
+import 'package:my_game/logic/game_bloc.dart';
 
 void main() {
   runApp(const SpaceInvadersApp());

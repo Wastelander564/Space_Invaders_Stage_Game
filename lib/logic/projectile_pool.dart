@@ -1,4 +1,6 @@
-import 'projectile.dart';
+// ignore: file_names
+
+import 'package:my_game/components/player/projectile.dart';
 
 class ProjectilePool {
   final List<Projectile> _availableProjectiles = [];

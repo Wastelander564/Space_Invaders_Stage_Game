@@ -3,7 +3,7 @@ import 'package:flame/particles.dart';
 import 'package:flutter/material.dart';
 import 'package:flame_audio/flame_audio.dart';
 import 'package:flame/effects.dart';
-import 'space_invader_game.dart';
+import 'package:my_game/space_invader_game.dart';
 
 
 class Projectile extends SpriteComponent with HasGameRef<SpaceInvadersGame> {

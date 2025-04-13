@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:my_game/projectile.dart';
+import 'package:my_game/components/player/projectile.dart';
 
 class ObjectPool<T> {
   final Queue<T> _pool = Queue<T>();

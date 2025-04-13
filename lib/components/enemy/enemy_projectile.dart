@@ -2,18 +2,15 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flame_audio/flame_audio.dart';
-import 'space_invader_game.dart';
-import 'enemy_projectile_strategy.dart';
-import 'tint_decorator.dart';
+import 'package:my_game/space_invader_game.dart';
+import 'package:my_game/strategies/enemy_projectile_strategy.dart';
 
 class EnemyProjectile extends SpriteComponent with HasGameRef<SpaceInvadersGame> {
   ProjectileStrategy strategy;
-  late RenderWithTint renderWithTint;
 
   EnemyProjectile(double startX, double startY, this.strategy) {
     size = Vector2(10, 20);
     position = Vector2(startX - size.x / 2, startY);
-    renderWithTint = RenderWithTint(_originalRender);
   }
 
   @override
@@ -37,16 +34,6 @@ class EnemyProjectile extends SpriteComponent with HasGameRef<SpaceInvadersGame>
     }
   }
 
-  void _originalRender(Canvas canvas) {
-    super.render(canvas);
-  }
-
-  @override
-  void render(Canvas canvas) {
-    super.render(canvas);
-    // Use the decorator to render with the tint effect
-    renderWithTint.call(canvas, sprite, position);
-  }
 
   Rect get collisionBox =>
       Rect.fromLTWH(position.x, position.y, size.x, size.y);

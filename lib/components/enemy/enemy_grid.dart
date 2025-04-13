@@ -1,13 +1,13 @@
 import 'dart:math';
 import 'package:flame/components.dart';
-import 'package:my_game/projectile.dart';
-import 'object_pool.dart';
+import 'package:my_game/components/player/projectile.dart';
+import 'package:my_game/logic/object_pool.dart';
 import 'enemy.dart';
-import 'space_invader_game.dart';
+import 'package:my_game/space_invader_game.dart';
 import 'enemy_projectile.dart';
-import 'enemy_projectile_strategy.dart';
-import 'zig_zag_strategy.dart';
-import 'straight_down_strategy.dart';
+import 'package:my_game/strategies/enemy_projectile_strategy.dart';//enemy_projectile_strategy.dart
+import 'package:my_game/strategies/zig_zag_strategy.dart';
+import 'package:my_game/strategies/straight_down_strategy.dart';
 
 class EnemyGrid extends PositionComponent {
   late List<Enemy> enemies;

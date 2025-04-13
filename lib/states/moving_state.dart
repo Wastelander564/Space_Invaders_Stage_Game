@@ -1,5 +1,5 @@
 import 'player_states.dart';
-import 'player.dart';
+import 'package:my_game/components/player/player.dart';
 import 'idle_state.dart';
 
 class MovingLeftState extends PlayerState {

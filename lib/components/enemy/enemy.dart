@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'space_invader_game.dart';
+import 'package:my_game/space_invader_game.dart';
 
 class Enemy extends SpriteAnimationComponent with HasGameRef<SpaceInvadersGame> {
   static const double speed = 50;

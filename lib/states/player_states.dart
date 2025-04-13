@@ -1,4 +1,4 @@
-import 'player.dart';
+import 'package:my_game/components/player/player.dart';
 
 abstract class PlayerState {
   void enter(Player player) {}
