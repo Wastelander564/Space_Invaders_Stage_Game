@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
+
 import 'package:my_game/space_invader_game.dart';
 import 'package:my_game/states/player_states.dart';
 import 'package:my_game/states/idle_state.dart';

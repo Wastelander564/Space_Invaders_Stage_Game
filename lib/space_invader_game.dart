@@ -7,11 +7,11 @@ import 'package:flutter/services.dart';
 import 'components/player/player.dart';
 import 'components/player/projectile.dart';
 import 'components/enemy/enemy_grid.dart';
-import 'components/ground.dart';
 import 'components/enemy/enemy_projectile.dart';
+import 'components/ground.dart';
 import 'components/lives_display.dart';
-import 'logic/projectile_pool.dart';
 
+import 'logic/projectile_pool.dart';
 import 'logic/game_bloc.dart';
 import 'logic/game_event.dart';
 import 'logic/game_state.dart';

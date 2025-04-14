@@ -1,6 +1,8 @@
+import 'dart:math';
+
 import 'enemy_projectile_strategy.dart';
 import 'package:my_game/components/enemy/enemy_projectile.dart';
-import 'dart:math';
+
 
 class ZigZagStrategy extends ProjectileStrategy {
   static const double verticalSpeed = 120;

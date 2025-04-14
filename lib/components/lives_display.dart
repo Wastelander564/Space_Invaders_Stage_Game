@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
+
 import 'package:my_game/space_invader_game.dart';
 import 'package:my_game/decorator/tint_decorator.dart';
 
@@ -26,7 +27,7 @@ class LivesDisplay extends PositionComponent with HasGameRef<SpaceInvadersGame> 
 
       final decoratedIcon = TintDecoratorComponent(
         child: icon,
-        tintColor: const Color.fromARGB(170, 0, 132, 255), // orange-ish tint
+        tintColor: const Color.fromARGB(170, 0, 132, 255), 
       )
         ..position = Vector2(startX + i * (iconSize + spacing), 10)
         ..size = Vector2(iconSize, iconSize);
